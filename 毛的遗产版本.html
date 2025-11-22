@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>共和国决策终端 (完整版)</title>
+    <!-- 引入 Lucide 图标库 -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* --- 字体定义 --- */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700;900&family=Ma+Shan+Zheng&family=Oswald:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap');
+
+        :root {
+            --ml-red: #8b0000;
+            --ml-red-bright: #d40000;
+            --ml-beige: #e6e1d5;
+            --ml-beige-dark: #d1cbb8;
+            --ml-border: #2c241b;
+            --ml-text: #1a1a1a;
+            --ml-gold: #f0c430;
+            --ml-blue: #1565c0;
+            --ml-green: #2e7d32;
+        }
+
+        * { box-sizing: border-box; user-select: none; }
+
+        body {
+            background-color: var(--ml-border);
+            color: var(--ml-text);
+            font-family: 'Noto Serif SC', serif;
+            overflow: hidden;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- 背景纹理 --- */
+        .guilloche-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--ml-beige);
+            background-image:
+                    repeating-radial-gradient(circle at 0 0, transparent 0, var(--ml-beige) 10px),
+                    repeating-linear-gradient(45deg, rgba(44, 36, 27, 0.05) 0, rgba(44, 36, 27, 0.05) 1px, transparent 1px, transparent 10px);
+            z-index: -1;
+        }
+
+        /* --- 1. 顶部通栏 --- */
+        .top-header-bar {
+            height: 60px;
+            background: #1a1a1a;
+            border-bottom: 4px solid var(--ml-border);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 20px;
+            z-index: 50;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .header-center-box {
+            position: absolute;
+            left: 50%; top: 50%;
+            transform: translate(-50%, -50%);
+            display: flex; align-items: center; gap: 12px;
+        }
+
+        .header-title {
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 900;
+            color: #f0ebd8;
+            font-size: 24px;
+            letter-spacing: 4px;
+            white-space: nowrap;
+        }
+
+        .header-emblem {
+            width: 36px; height: 36px;
+            background: var(--ml-red);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid var(--ml-gold);
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            color: var(--ml-gold);
+        }
+
+        .header-right {
+            position: absolute; right: 20px; top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .header-date {
+            background: #f0ebd8; color: #1a1a1a;
+            padding: 4px 12px;
+            font-family: 'Oswald', sans-serif; font-weight: 700;
+            border: 2px solid var(--ml-border);
+            font-size: 14px; letter-spacing: 1px;
+        }
+
+        /* --- 2. 顶部导航栏 (样式更新) --- */
+        .top-nav-bar {
+            background: #d1cbb8; /* 加深背景色以突显按钮 */
+            border-bottom: 4px solid var(--ml-border);
+            padding: 12px 0;
+            display: flex; justify-content: center; gap: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            z-index: 40; flex-shrink: 0;
+        }
+
+        .nav-btn {
+            background: #f0ebd8;
+            border: 3px solid var(--ml-border); /* 加粗全边框 */
+            padding: 8px 32px;
+            font-family: 'Oswald', 'Noto Serif SC', serif; /* 优先使用 Oswald 增加硬朗感 */
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--ml-border); cursor: pointer;
+            /* 硬阴影效果 */
+            box-shadow: 4px 4px 0 var(--ml-border);
+            transition: all 0.1s;
+            min-width: 140px;
+            text-align: center;
+            border-radius: 0; /* 直角矩形 */
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            position: relative;
+        }
+
+        .nav-btn:hover {
+            background: #fff;
+            transform: translate(-1px, -1px); /* 悬停轻微上浮 */
+            box-shadow: 6px 6px 0 var(--ml-border);
+        }
+
+        /* 激活状态：反色 + 按压效果 */
+        .nav-btn.active {
+            background: var(--ml-border);
+            color: #f0ebd8;
+            border-color: var(--ml-border);
+            box-shadow: 0 0 0 transparent; /* 去除硬阴影模拟按压 */
+            transform: translate(4px, 4px); /* 下沉 */
+        }
+
+        /* --- 主内容区 --- */
+        #main-content {
+            flex: 1; overflow: hidden; position: relative; padding: 20px;
+        }
+        .hidden { display: none !important; }
+
+        /* --- 通用面板样式 --- */
+        .ml-panel {
+            background: #fdfbf7;
+            border: 2px solid var(--ml-border);
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.1);
+        }
+
+        /* --- 政治局 (Politburo) --- */
+        .politburo-container {
+            height: 100%; overflow-y: auto; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .section-title { text-align: center; margin-bottom: 30px; }
+        .section-title h1 {
+            font-size: 36px; font-weight: 900; color: #3d2e26;
+            margin: 0; padding-bottom: 8px; border-bottom: 4px solid #8b0000;
+            display: inline-block; letter-spacing: 2px;
+        }
+        .section-title p { color: #666; font-size: 12px; font-weight: bold; margin-top: 8px; }
+
+        .grid-layout {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 30px; margin-top: 20px;
+        }
+
+        .minister-card {
+            background: #fdfbf7;
+            border: 2px solid var(--ml-border);
+            width: 130px;
+            display: flex; flex-direction: column;
+            position: relative; cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.15);
+        }
+        .minister-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 6px 6px 0 rgba(0,0,0,0.25);
+            z-index: 10; border-color: var(--ml-red);
+        }
+        .minister-photo-frame {
+            width: 100%; height: 150px;
+            background: #d1cbb8;
+            border-bottom: 2px solid var(--ml-border);
+            overflow: hidden; position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .portrait-svg {
+            width: 80%; height: 80%;
+            fill: #3d2e26; opacity: 0.8;
+            filter: drop-shadow(2px 2px 0 rgba(255,255,255,0.2));
+        }
+
+        .minister-info { padding: 6px; text-align: center; background: #e6e1d5; }
+        .minister-title {
+            font-size: 10px; color: #555; font-weight: 700;
+            margin-bottom: 2px; border-bottom: 1px solid #999; display: inline-block;
+        }
+        .minister-name { font-size: 14px; font-weight: 900; color: var(--ml-border); }
+        .mastery-bar {
+            height: 4px; width: 100%; background: #ccc;
+            margin-top: 4px; border: 1px solid #999;
+        }
+        .mastery-fill { height: 100%; background: var(--ml-red); transition: width 0.5s; }
+
+        /* --- 宣传部 (Propaganda) --- */
+        .dashboard-stats {
+            display: flex; gap: 30px; margin-bottom: 40px;
+            justify-content: center; width: 100%; max-width: 900px;
+        }
+        .archive-folder {
+            flex: 1; background: #d4cdb8;
+            border: 2px solid var(--ml-border); border-radius: 4px;
+            position: relative; box-shadow: 6px 6px 0 rgba(0,0,0,0.1);
+            padding: 20px; text-align: center;
+        }
+        .archive-tab-top {
+            position: absolute; top: -12px; left: 10px;
+            background: inherit; border: 2px solid var(--ml-border); border-bottom: none;
+            padding: 2px 12px; font-size: 11px; font-weight: 900;
+            border-radius: 4px 4px 0 0; color: var(--ml-border);
+        }
+        .stat-num { font-size: 48px; font-weight: 900; margin: 10px 0; line-height: 1; }
+        .stat-label { font-size: 12px; color: #555; font-weight: bold; }
+
+        .task-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px;
+            width: 100%; max-width: 1000px;
+        }
+        .task-btn {
+            background: #fdfbf7; border: 2px solid var(--ml-border);
+            padding: 20px; text-align: left; position: relative; overflow: hidden;
+            transition: all 0.2s; box-shadow: 4px 4px 0 rgba(0,0,0,0.1);
+            cursor: pointer; height: 140px; display: flex; flex-direction: column; justify-content: center;
+        }
+        .task-btn:hover {
+            background: #fff; transform: translateY(-2px);
+            box-shadow: 6px 6px 0 rgba(0,0,0,0.2); border-color: var(--ml-red);
+        }
+        .task-icon-bg {
+            position: absolute; right: 10px; top: 10px; opacity: 0.1;
+            color: var(--ml-border); transform: scale(1.5);
+        }
+        .task-title { font-size: 20px; font-weight: 900; margin-bottom: 8px; font-family: 'Noto Serif SC'; }
+        .task-desc { font-size: 12px; color: #666; line-height: 1.4; position: relative; z-index: 2; }
+
+        /* --- 动态档案袋系统 (终极滚动版) --- */
+        .study-container {
+            width: 100%; height: 100%;
+            overflow: hidden; /* 外部不可滚动，内部滚动 */
+            display: flex; flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        /* 文件夹容器 */
+        .folder-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            height: 75vh; /* 固定高度，适应屏幕 */
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* 文件纸张：启用内部滚动 */
+        .file-paper {
+            position: relative;
+            width: 92%;
+            height: 100%; /* 占满容器 */
+            max-height: 100%;
+            background: #fdfbf7;
+            background-repeat: repeat;
+            background-image: url("https://www.transparenttextures.com/patterns/cream-paper.png");
+            border: 1px solid #c0b8a0;
+            padding: 50px 60px 100px 60px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            z-index: 5;
+            font-family: 'Noto Serif SC', serif;
+            display: flex; flex-direction: column;
+            transition: transform 0.5s ease-out, box-shadow 0.5s;
+            overflow-y: auto; /* 关键：内容超长时显示滚动条 */
+            scrollbar-width: thin; /* Firefox */
+            scrollbar-color: var(--ml-border) transparent;
+        }
+
+        /* 复古滚动条样式 (Webkit) */
+        .file-paper::-webkit-scrollbar { width: 6px; }
+        .file-paper::-webkit-scrollbar-track { background: transparent; }
+        .file-paper::-webkit-scrollbar-thumb {
+            background-color: var(--ml-border);
+            border-radius: 3px;
+            border: 1px solid #e6e1d5;
+        }
+
+        .paper-header {
+            text-align: center; border-bottom: 3px double var(--ml-red);
+            padding-bottom: 15px; margin-bottom: 25px; color: var(--ml-red);
+            flex-shrink: 0;
+        }
+        .paper-title-lg {
+            font-size: 32px;
+            font-weight: 900;
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 5px;
+        }
+
+        /* 统一的文字排版风格 (紧凑版) */
+        .question-block {
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 700;
+            color: #1a1a1a;
+            font-size: 20px;
+            line-height: 1.4;
+            margin-bottom: 20px;
+            text-align: justify;
+            padding: 12px;
+            background: rgba(240,235,216,0.4);
+            border-left: 5px solid var(--ml-red);
+            flex-shrink: 0;
+        }
+
+        .answer-block {
+            border-top: 1px dashed #999;
+            padding-top: 20px;
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 400;
+            font-size: 18px;
+            line-height: 1.6;
+            color: #2c241b;
+            text-align: justify;
+            flex: 1;
+            min-height: 200px; /* 保证有空间展示 */
+        }
+        .answer-block p {
+            margin: 0 0 8px 0 !important;
+        }
+
+        /* 档案袋前盖：绝对定位在底部 */
+        .folder-front {
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 100%;
+            height: 90%;
+            background: #d4cdb8;
+            border: 2px solid #8a7f68;
+            border-top: 1px solid #a89b80;
+            border-radius: 2px;
+            z-index: 10;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: flex-start;
+            padding-top: 60px;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0, rgba(0,0,0,0.02) 1px, transparent 1px, transparent 5px);
+        }
+
+        .folder-question-box {
+            width: 80%; background: #f0ebd8;
+            border: 3px solid var(--ml-border);
+            padding: 20px; margin-top: 0;
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.1);
+            transform: rotate(-1deg);
+        }
+        .folder-question-label {
+            font-family: 'Oswald', sans-serif;
+            font-size: 14px; color: var(--ml-red); font-weight: bold;
+            border-bottom: 1px solid #ccc; margin-bottom: 12px;
+            display: flex; justify-content: space-between;
+            text-transform: uppercase;
+        }
+        .folder-question-text {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 20px; font-weight: 900; color: #1a1a1a;
+            line-height: 1.4; text-align: left;
+        }
+
+        /* 二级摘要样式 - 印章风格 */
+        .folder-sub-context {
+            margin-top: 12px; padding-top: 8px; border-top: 1px dashed #999;
+            font-size: 13px; color: #555; font-weight: bold;
+            display: flex; flex-wrap: wrap; gap: 8px;
+        }
+        .sub-tag {
+            background: #e6e1d5; color: #333;
+            padding: 2px 6px; border-radius: 2px; font-family: 'Noto Serif SC';
+            border: 1px solid #aaa;
+        }
+        .sub-tag-highlight {
+            background: transparent;
+            color: #d40000;
+            padding: 2px 4px;
+            font-family: 'Ma Shan Zheng', cursive;
+            border: 2px solid #d40000;
+            border-radius: 4px;
+            transform: rotate(-2deg);
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        /* 动画状态：抽出 */
+        .folder-wrapper.revealed .folder-front {
+            transform: translateY(150px);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .folder-wrapper.revealed .file-paper {
+            z-index: 20;
+            transform: scale(1.01);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            border-color: var(--ml-border);
+        }
+
+        .extract-btn {
+            margin-top: 50px; background: var(--ml-border); color: #f0ebd8;
+            border: none; padding: 14px 50px;
+            font-family: 'Noto Serif SC';
+            font-weight: 900; font-size: 20px; cursor: pointer;
+            box-shadow: 0 6px 0 #000; transition: transform 0.1s;
+        }
+        .extract-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #000; }
+
+        .stamp-actions {
+            display: flex; justify-content: space-around;
+            padding-top: 30px; margin-top: 30px; border-top: 2px solid #eee;
+            flex-shrink: 0; /* 保持不被挤压 */
+        }
+        .stamp-btn {
+            width: 80px; height: 80px; border: 4px double; border-radius: 50%;
+            font-weight: 900; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; transform: rotate(-12deg);
+            cursor: pointer; font-size: 14px; background: rgba(255,255,255,0.8);
+            transition: transform 0.2s;
+            font-family: 'Oswald', sans-serif;
+        }
+        .stamp-btn:hover { transform: rotate(-12deg) scale(1.1); background: #fff; }
+        .stamp-red { color: var(--ml-red); border-color: var(--ml-red); }
+        .stamp-yellow { color: #d35400; border-color: #d35400; }
+        .stamp-green { color: #27ae60; border-color: #27ae60; }
+
+        /* --- 计委 (Economy) 新样式 --- */
+        .economy-layout {
+            height: 100%; width: 100%;
+            display: flex; gap: 20px;
+            padding: 10px;
+        }
+
+        .eco-col-left {
+            width: 35%; display: flex; flex-direction: column;
+        }
+        .eco-col-right {
+            flex: 1; display: flex; flex-direction: column;
+        }
+
+        .pie-chart-container {
+            width: 220px; height: 220px;
+            border-radius: 50%;
+            border: 4px solid var(--ml-border);
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
+            margin: 20px auto;
+            position: relative;
+        }
+        .pie-hole {
+            position: absolute; inset: 0; margin: auto;
+            width: 50px; height: 50px;
+            background: #fdfbf7;
+            border-radius: 50%;
+            border: 2px solid var(--ml-border);
+        }
+
+        .faction-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 12px;
+            border-bottom: 1px solid #d1cbb8;
+            background: rgba(255,255,255,0.5);
+        }
+        .faction-color { width: 16px; height: 16px; border: 1px solid #000; margin-right: 10px; }
+
+        .policy-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            overflow-y: auto;
+            padding: 10px;
+            flex: 1;
+        }
+
+        .policy-card {
+            aspect-ratio: 1;
+            background: #fdfbf7;
+            border: 2px solid var(--ml-border);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            cursor: default;
+            padding: 8px;
+            text-align: center;
+        }
+        .policy-card:hover {
+            transform: scale(1.05);
+            box-shadow: 5px 5px 0 rgba(0,0,0,0.2);
+            z-index: 10;
+            background: #fff;
+        }
+
+        .urgent-issues {
+            margin-top: 15px;
+            border: 2px solid var(--ml-border);
+            background: #3d2e26;
+            color: #e6e1d5;
+            padding: 15px;
+            min-height: 100px;
+        }
+        .urgent-header {
+            display: flex; align-items: center; gap: 8px;
+            font-weight: bold; color: var(--ml-gold);
+            margin-bottom: 8px; border-bottom: 1px solid #555; padding-bottom: 4px;
+        }
+
+        /* --- 通用弹窗 --- */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(2px); z-index: 100;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .dossier-window {
+            width: 800px; height: 600px; background: #fdfbf7;
+            border: 4px solid var(--ml-border); display: flex; flex-direction: column;
+            box-shadow: 10px 10px 0 rgba(0,0,0,0.4);
+        }
+        .dossier-header {
+            background: var(--ml-red); color: #fff; padding: 15px;
+            font-size: 20px; font-weight: bold; display: flex; justify-content: space-between;
+        }
+        .dossier-body {
+            flex: 1; overflow-y: auto; padding: 20px;
+            background-image: url("https://www.transparenttextures.com/patterns/cream-paper.png");
+        }
+        .dossier-item { border-bottom: 1px dashed #ccc; padding: 10px 0; }
+        .dossier-q { font-weight: bold; color: #333; cursor: pointer; }
+        .dossier-q:hover { color: var(--ml-red); }
+        .dossier-a {
+            margin-top: 8px; padding: 10px; background: rgba(0,0,0,0.03);
+            border-left: 3px solid var(--ml-gold); font-size: 14px; color: #555;
+        }
+
+        .progress-track {
+            position: absolute; top: 20px; width: 300px; height: 8px;
+            background: #ccc; border: 1px solid #333; z-index: 50;
+        }
+        .progress-fill { height: 100%; background: var(--ml-red); transition: width 0.3s; }
+
+    </style>
+</head>
+<body>
+
+<div class="guilloche-bg"></div>
+
+<!-- 1. 顶部通栏 -->
+<div class="top-header-bar">
+    <div class="header-center-box">
+        <div class="header-emblem">
+            <i data-lucide="star" width="20" fill="#f0c430" stroke="none"></i>
+        </div>
+        <span class="header-title">中华人民共和国国务院</span>
+    </div>
+    <div class="header-right">
+        <div class="header-date" id="clock-display">1976.10.06</div>
+    </div>
+</div>
+
+<!-- 2. 顶部导航 -->
+<div class="top-nav-bar">
+    <div class="nav-btn active" onclick="switchTab('POLITBURO')" id="btn-POLITBURO">政治局</div>
+    <div class="nav-btn" onclick="switchTab('IDEOLOGY')" id="btn-IDEOLOGY">宣传部</div>
+    <div class="nav-btn" onclick="switchTab('ECONOMY')" id="btn-ECONOMY">计委</div>
+</div>
+
+<!-- 3. 主内容 -->
+<div id="main-content">
+
+    <!-- A. 政治局 (通读复习) -->
+    <div id="view-politburo" class="politburo-container">
+        <div class="section-title">
+            <h1>中央政治局常务委员会</h1>
+            <p>点击同志头像调阅分管领域机密档案 (快速通读)</p>
+        </div>
+
+        <!-- 核心领导 -->
+        <div style="margin-bottom: 40px; transform: scale(1.1);">
+            <div class="minister-card" onclick="openDossier('ALL')">
+                <div class="minister-photo-frame">
+                    <svg class="portrait-svg" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12c0 5.52 4.48 10 10 10s10-4.48 10-10c0-5.52-4.48-10-10-10zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                    </svg>
+                </div>
+                <div class="minister-info">
+                    <div class="minister-title">党中央主席</div>
+                    <div class="minister-name">全科总览</div>
+                    <div class="mastery-bar"><div class="mastery-fill" style="width: 0%" id="bar-all"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 各部委 -->
+        <div class="grid-layout">
+            <div class="minister-card" onclick="openDossier('马原')">
+                <div class="minister-photo-frame"><i data-lucide="anchor" size="64" color="#3d2e26" style="opacity:0.5"></i></div>
+                <div class="minister-info">
+                    <div class="minister-title">总理 (马原)</div>
+                    <div class="minister-name">马原同志</div>
+                    <div class="mastery-bar"><div class="mastery-fill" style="width: 0%" id="bar-mayuan"></div></div>
+                </div>
+            </div>
+            <div class="minister-card" onclick="openDossier('史纲')">
+                <div class="minister-photo-frame"><i data-lucide="scroll" size="64" color="#3d2e26" style="opacity:0.5"></i></div>
+                <div class="minister-info">
+                    <div class="minister-title">委员长 (史纲)</div>
+                    <div class="minister-name">史纲同志</div>
+                    <div class="mastery-bar"><div class="mastery-fill" style="width: 0%" id="bar-shigang"></div></div>
+                </div>
+            </div>
+            <div class="minister-card" onclick="openDossier('新思想')">
+                <div class="minister-photo-frame"><i data-lucide="zap" size="64" color="#3d2e26" style="opacity:0.5"></i></div>
+                <div class="minister-info">
+                    <div class="minister-title">政协主席 (新思想)</div>
+                    <div class="minister-name">新思想同志</div>
+                    <div class="mastery-bar"><div class="mastery-fill" style="width: 0%" id="bar-xinsixiang"></div></div>
+                </div>
+            </div>
+            <!-- 修改：思修卡片已解锁 -->
+            <div class="minister-card" onclick="openDossier('思修')">
+                <div class="minister-photo-frame"><i data-lucide="scale" size="64" color="#3d2e26" style="opacity:0.5"></i></div>
+                <div class="minister-info">
+                    <div class="minister-title">纪委书记 (思修)</div>
+                    <div class="minister-name">思修同志</div>
+                    <div class="mastery-bar"><div class="mastery-fill" style="width: 0%" id="bar-sixiu"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- B. 宣传部 (刷题工作台) -->
+    <div id="view-ideology" class="politburo-container hidden">
+
+        <!-- 仪表盘 -->
+        <div id="ideology-dashboard" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="section-title">
+                <h1 style="border-color: #a80808; color: #000000;">中央宣传部</h1>
+                <p>定期开展思想整风运动，保持队伍纯洁性</p>
+            </div>
+
+            <div class="dashboard-stats">
+                <div class="archive-folder" style="background: #f5f0e1;">
+                    <div class="archive-tab-top">最新指示</div>
+                    <div class="stat-num" style="color: #2e7d32;" id="count-new">0</div>
+                    <div class="stat-label">待学习新精神</div>
+                </div>
+                <div class="archive-folder" style="background: #e6e1d5;">
+                    <div class="archive-tab-top" style="color: #d40000;">加急批复</div>
+                    <div class="stat-num" style="color: #d40000;" id="count-due">0</div>
+                    <div class="stat-label">急需巩固</div>
+                </div>
+                <div class="archive-folder" style="background: #d1cbb8;">
+                    <div class="archive-tab-top">已归档</div>
+                    <div class="stat-num" style="color: #1565c0;" id="count-mastered">0</div>
+                    <div class="stat-label">思想过硬</div>
+                </div>
+            </div>
+
+            <div class="task-grid">
+                <button class="task-btn" onclick="startSession('new')">
+                    <div class="task-icon-bg"><i data-lucide="coffee"></i></div>
+                    <div class="task-title" style="color: #2e7d32;">日常学习</div>
+                    <div class="task-desc">批阅 10 份文件。<br>适合日常维护思想纯洁性。</div>
+                </button>
+                <button class="task-btn" onclick="startSession('heavy')">
+                    <div class="task-icon-bg"><i data-lucide="factory"></i></div>
+                    <div class="task-title" style="color: #8b0000;">攻坚克难</div>
+                    <div class="task-desc">批阅 40 份文件。<br>高强度的思想改造运动。</div>
+                </button>
+                <button class="task-btn" onclick="startSession('review')">
+                    <div class="task-icon-bg"><i data-lucide="shield"></i></div>
+                    <div class="task-title" style="color: #1565c0;">专项整风</div>
+                    <div class="task-desc">仅复习 20 份旧档。<br>巩固已有阵地，防止修正主义。</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- 学习界面 (动画重构) -->
+        <div id="ideology-study" class="study-container hidden">
+
+            <!-- 进度 -->
+            <div class="progress-track">
+                <div class="progress-fill" id="study-progress" style="width: 0%;"></div>
+            </div>
+
+            <!-- 核心动画结构 -->
+            <div class="folder-wrapper" id="folder-anim-wrapper">
+
+                <!-- 文件纸张 (底层) -->
+                <div class="file-paper">
+                    <div class="paper-header">
+                        <div class="paper-title-lg">绝密档案</div>
+                    </div>
+
+                    <div class="paper-body">
+                        <!-- 题目 (再次显示，方便对照) -->
+                        <div class="question-block">
+                            <div style="font-family:'Oswald'; font-size:12px; color:#8b0000; margin-bottom:5px;">[指示事项]</div>
+                            <div id="study-q-content-inner">...</div>
+                        </div>
+
+                        <!-- 答案 (抽出后显示) -->
+                        <div class="answer-block hidden" id="study-a-content">
+                            答案加载中...
+                        </div>
+                    </div>
+
+                    <!-- 评分 (抽出后显示) -->
+                    <div class="stamp-actions hidden" id="study-actions">
+                        <div class="stamp-btn stamp-red" onclick="handleRate('forgot')">
+                            <i data-lucide="x" size="24"></i><span>批判</span>
+                        </div>
+                        <div class="stamp-btn stamp-yellow" onclick="handleRate('hard')">
+                            <i data-lucide="alert-triangle" size="24"></i><span>整风</span>
+                        </div>
+                        <div class="stamp-btn stamp-green" onclick="handleRate('remember')">
+                            <i data-lucide="check" size="24"></i><span>贯彻</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 前封皮 (盖在上面) -->
+                <div class="folder-front">
+                    <div class="folder-label">
+                        <div style="font-family:'Ma Shan Zheng'; font-size:32px; line-height:1;">绝密</div>
+                        <div style="font-family:'Oswald'; font-size:10px; font-weight:bold; letter-spacing:2px; margin-top:5px;">TOP SECRET</div>
+                    </div>
+
+                    <!-- 题目直接印在袋子上 -->
+                    <div class="folder-question-box">
+                        <div class="folder-question-label">
+                            <span>事项摘要 (SUBJECT)</span>
+                            <span>等级: AAA</span>
+                        </div>
+                        <div class="folder-question-text" id="folder-question-display">
+                            题目加载中...
+                        </div>
+                        <!-- 新增：二级上下文 (动态插入) -->
+                        <div class="folder-sub-context" id="folder-sub-context"></div>
+                    </div>
+
+                    <button id="btn-extract" class="extract-btn" onclick="revealFile()">
+                        查阅档案 (OPEN)
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="quitSession()" style="position: absolute; top: 20px; right: 20px; background:transparent; border:none; cursor:pointer; color:#555;">
+                <i data-lucide="archive"></i> 暂停整风
+            </button>
+        </div>
+
+    </div>
+
+    <!-- C. 计委 (数据总览) -->
+    <div id="view-economy" class="politburo-container hidden">
+        <div class="economy-layout">
+            <!-- 左侧：数据饼图 -->
+            <div class="eco-col-left ml-panel p-4">
+                <div class="font-oswald text-lg mb-4 border-b-2 border-[#3d2e26] w-full text-center" style="font-family: 'Oswald'; font-size:18px; font-weight:bold; border-bottom: 2px solid #3d2e26; margin-bottom: 15px; padding-bottom:5px;">
+                    知识储备构成 (KNOWLEDGE COMPOSITION)
+                </div>
+
+                <div id="pie-chart-wrapper" class="pie-chart-container">
+                    <div class="pie-hole"></div>
+                </div>
+
+                <div id="pie-legend" style="width: 100%; display: flex; flex-direction: column; gap: 5px;">
+                    <!-- JS 将在此填充图例 -->
+                </div>
+            </div>
+
+            <!-- 右侧：政策网格 + 紧急事项 -->
+            <div class="eco-col-right ml-panel p-4">
+                <div style="font-family: 'Oswald'; font-size:18px; font-weight:bold; border-bottom: 2px solid #3d2e26; margin-bottom: 15px; padding-bottom:5px;">
+                    复习进度总览 (NATIONAL PROGRESS)
+                </div>
+
+                <div id="policy-grid-container" class="policy-grid">
+                    <!-- JS 填充格子 -->
+                </div>
+
+                <div class="urgent-issues">
+                    <div class="urgent-header">
+                        <i data-lucide="alert-triangle" size="18" color="#f0c430"></i>
+                        <span>急需处理 (URGENT ISSUES)</span>
+                    </div>
+                    <div id="urgent-list" style="font-size: 12px; line-height: 1.6;">
+                        暂无紧急事项。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- 弹窗：档案清单 (通读) -->
+<div id="modal-dossier" class="modal-overlay hidden">
+    <div class="dossier-window">
+        <div class="dossier-header">
+            <span id="dossier-title">机密档案</span>
+            <i data-lucide="x" style="cursor:pointer;" onclick="closeDossier()"></i>
+        </div>
+        <div class="dossier-body" id="dossier-list"></div>
+    </div>
+</div>
+
+<script>
+    // --- 完整数据 (136条) ---
+    const fullKnowledgeData = {
+        "考研政治知识点总集": [
+            {
+                "模块": "马原", "子模块": "基本知识", "知识点列表": [
+                    { "知识点序号": 1, "知识点标题": "科学社会主义的核心命题", "知识点内容": ["资本主义必然灭亡", "社会主义必然胜利"] },
+                    { "知识点序号": 2, "知识点标题": "马恩第一个无产阶级政党", "知识点内容": ["马克思和恩格斯建立的第一个无产阶级政党：共产主义者同盟"] },
+                    { "知识点序号": 3, "知识点标题": "世界的物质统一性原理", "知识点内容": ["辩证唯物主义最基本最核心的观点", "马克思主义的基石"] },
+                    { "知识点序号": 4, "知识点标题": "一个错误说法", "知识点内容": ["理论联系实际，不是实践符合理论", "用实践套理论=本本主义", "用实践发展理论=中国化"] },
+                    { "知识点序号": 5, "知识点标题": "理解政治经济学的枢纽", "知识点内容": ["核心枢纽：劳动二重性理论", "辨析：马克思经济学说的核心内容和基石是剩余价值理论"] },
+                    { "知识点序号": 6, "知识点标题": "六个寓于", "知识点内容": ["价值寓于使用价值之中（J>S）", "必然性寓于偶然性之中（B>O）", "斗争性寓于同一性之中（D>T）", "绝对性寓于相对性质中（J>X）", "普遍性寓于特殊性之中（P>T）", "共性寓于个性之中（G=G）", "核心规则：寓于的前面一定是绝对的、无条件的，要寓于有条件的"] },
+                    { "知识点序号": 7, "知识点标题": "马克思主义的基本特征", "知识点内容": ["本质属性：人民性", "区别于其他理论的根本特征（显著特征）：实践性", "首要的、基本的观点：实践的观点", "基本特征概括：科学性与革命性的统一（科命）"] },
+                    { "知识点序号": 8, "知识点标题": "唯物史观和剩余价值学说", "知识点内容": ["社会主义由空想变为科学的两大基石", "马克思一生的两个伟大发现"] },
+                    { "知识点序号": 9, "知识点标题": "人的发展", "知识点内容": ["定义：社会历史过程，包括人类整体和个体发展，涉及体力、智力、个性、交往能力发展", "核心：最根本的是人的自由程度提高", "根本目标：无论社会还是个人，均为“人的自由全面的发展”"] },
+                    { "知识点序号": 10, "知识点标题": "对立统一规律", "知识点内容": ["核心定位：唯物辩证法的实质和核心", "原因1：揭示事物普遍联系的根本内容和变化发展的内在动力，回答“事物为什么会发展”", "原因2：贯穿质量互变规律、否定之否定规律及唯物辩证法基本范畴的中心线索，是理解这些规律和范畴的钥匙", "原因3：提供认识世界和改造世界的根本方法——矛盾分析方法"] },
+                    { "知识点序号": 11, "知识点标题": "马克思主义的三大组成部分", "知识点内容": ["马克思主义哲学：基础和方法", "马克思主义政治经济学：主体内容", "科学社会主义：目的和归宿"] },
+                    { "知识点序号": 12, "知识点标题": "马克思主义相关著作", "知识点内容": ["《德法年鉴》：完成两个转变", "《神圣家族》：马恩合著第一部著作", "《德意志意识形态》：首次系统阐述历史唯物主义基本观点", "《共产党宣言》：标志马克思主义公开问世", "《资本论》：被称为“工人阶级的圣经”"] },
+                    { "知识点序号": 13, "知识点标题": "金融资本形成的主要途径", "知识点内容": ["金融联系", "资本参与", "人事参与"] },
+                    { "知识点序号": 14, "知识点标题": "货币最基本的职能", "知识点内容": ["价值尺度", "流通手段"] },
+                    { "知识点序号": 15, "知识点标题": "货币职能", "知识点内容": ["支付手段：涵盖偿还债务、缴纳赋税、支付工资、支付租金"] },
+                    { "知识点序号": 16, "知识点标题": "资本主义国家内部的矛盾", "知识点内容": ["经济发展失调", "政治体制失灵", "社会融合机制失效"] },
+                    { "知识点序号": 17, "知识点标题": "垄断资本向世界范围扩展的基本形式", "知识点内容": ["借贷资本输出", "生产资本输出", "商品资本输出"] },
+                    { "知识点序号": 18, "知识点标题": "金融寡头控制形式", "知识点内容": ["经济领域：通过“参与制”实现统治", "政治领域：通过同政府的“个人联合”控制国家机器"] },
+                    { "知识点序号": 19, "知识点标题": "国际金融垄断资本主义", "知识点内容": ["核心特征：国际金融资本的垄断", "具体表现：金融垄断寡头化、金融垄断国际化、经济虚拟化、产业空心化"] },
+                    { "知识点序号": 20, "知识点标题": "所有制辨析", "知识点内容": ["私人股份所有制：所有权和控制权不再统一", "法人资本所有制：狠狠独揽大权"] },
+                    { "知识点序号": 21, "知识点标题": "资本周转快慢", "知识点内容": ["关键影响因素1：资本周转的时间", "关键影响因素2：生产资本中固定资本和流动资本的构成"] },
+                    { "知识点序号": 22, "知识点标题": "资本积累", "知识点内容": ["唯一源泉：剩余价值", "核心作用：资本主义扩大再生产的源泉", "社会影响：导致资本主义社会两极分化", "必然结果：资本有机构成提高，进而产生失业问题"] },
+                    { "知识点序号": 23, "知识点标题": "生产资本的划分方式", "知识点内容": ["划分标准1（是否增值）：不变资本、可变资本", "划分标准2（循环职能）：货币资本、生产资本、商品资本", "划分标准3（周转方式）：固定资本、流动资本"] },
+                    { "知识点序号": 24, "知识点标题": "不变资本和可变资本", "知识点内容": ["划分依据：在剩余价值生产中所起的不同作用", "不变资本：以生产资料形态存在", "可变资本：购买劳动力的资本"] },
+                    { "知识点序号": 25, "知识点标题": "资本主义工资", "知识点内容": ["表现假象：劳动的价值或价格", "本质：劳动力的价值或价格"] },
+                    { "知识点序号": 26, "知识点标题": "矛盾相关核心内容", "知识点内容": ["资本主义基本矛盾：生产社会化和生产资料资本主义私人占有", "私有制商品经济基本矛盾：私人劳动和社会劳动"] },
+                    { "知识点序号": 27, "知识点标题": "社会再生产的核心问题", "知识点内容": ["核心问题：社会总产品的实现问题"] },
+                    { "知识点序号": 28, "知识点标题": "社会", "知识点内容": ["生产力：生产的物质内容", "生产关系：生产的社会形式", "生产方式：生产力与生产关系的统一"] },
+                    { "知识点序号": 29, "知识点标题": "价值规律的作用", "知识点内容": ["自发调节生产资料和劳动力在各生产部门的分配比例", "自发刺激社会生产力的发展", "自发调节社会收入的分配"] },
+                    { "知识点序号": 30, "知识点标题": "超额和相对剩余价值", "知识点内容": ["超额：个别资本家改进技术", "相对：全社会劳动生产率普遍提高"] },
+                    { "知识点序号": 31, "知识点标题": "劳动生产率", "知识点内容": ["定义：劳动者生产使用价值的效率"] },
+                    { "知识点序号": 32, "知识点标题": "垄断价格", "知识点内容": ["垄断高价：卖得贵", "垄断低价：买得便宜", "全社会商品价格总额=价值总额"] },
+                    { "知识点序号": 33, "知识点标题": "政经计算", "知识点内容": ["投资=C+V", "有机构成=C:V", "剩余价值率=M:V", "利润=M"] },
+                    { "知识点序号": 34, "知识点标题": "剩余价值计算", "知识点内容": ["绝对剩余价值：延长总时间", "相对剩余价值：缩短必要劳动时间"] },
+                    { "知识点序号": 35, "知识点标题": "列宁相关论述", "知识点内容": ["帝国主义特征：垄断组织起决定作用", "社会主义革命：可首先在一国或几国胜利"] },
+                    { "知识点序号": 36, "知识点标题": "战时共产主义与新经济政策", "知识点内容": ["战时共产主义：余粮收集制", "新经济政策：恢复商品货币关系"] },
+                    { "知识点序号": 37, "知识点标题": "巴黎公社", "知识点内容": ["性质：无产阶级夺取政权的第一次伟大尝试", "措施：公职人员选举制、取消高薪制"] }
+                ]
+            },
+            {
+                "模块": "史纲", "子模块": "革命与建设", "知识点列表": [
+                    { "知识点序号": 38, "知识点标题": "清末新政", "知识点内容": ["核心措施：裁撤绿营，建立新军"] },
+                    { "知识点序号": 39, "知识点标题": "同盟会起义", "知识点内容": ["影响最大：黄花岗起义", "成立后首次：萍浏醴起义"] },
+                    { "知识点序号": 40, "知识点标题": "戊戌维新", "知识点内容": ["核心定位：中国民族资产阶级登上政治舞台的第一次表演"] },
+                    { "知识点序号": 41, "知识点标题": "近代思想家", "知识点内容": ["林则徐：睁眼看世界第一人", "魏源：师夷长技以制夷", "严复：救亡图存"] },
+                    { "知识点序号": 42, "知识点标题": "思想交锋", "知识点内容": ["维新派与守旧派：第一次正面交锋", "维新派与洋务派：是否学习制度"] },
+                    { "知识点序号": 43, "知识点标题": "早期马克思主义者", "知识点内容": ["主体部分：五四爱国运动的左翼骨干"] },
+                    { "知识点序号": 44, "知识点标题": "新文化运动", "知识点内容": ["五四前核心：改造国民性", "武器：进化观点和个性解放思想"] },
+                    { "知识点序号": 45, "知识点标题": "李大钊", "知识点内容": ["历史地位：中国第一个马克思主义者", "著作：《我的马克思主义观》系统介绍马克思主义"] },
+                    { "知识点序号": 46, "知识点标题": "土地政策", "知识点内容": ["土地革命时期：限制富农", "抗日战争时期：减租减息", "解放战争时期：征收富农多余土地", "新中国成立初期：保存富农经济"] },
+                    { "知识点序号": 47, "知识点标题": "工人罢工运动", "知识点内容": ["起点：香港海员罢工", "高潮：京汉铁路罢工", "持续最长：省港大罢工"] },
+                    { "知识点序号": 48, "知识点标题": "中心问题", "知识点内容": ["中国革命中心问题：无产阶级领导权", "国民革命中心问题：农民问题"] },
+                    { "知识点序号": 49, "知识点标题": "延安整风运动", "知识点内容": ["重点：教条主义", "最主要任务：反对主观主义", "第一个重要问题：学风问题", "方针：惩前毖后、治病救人"] },
+                    { "知识点序号": 50, "知识点标题": "精神辨析", "知识点内容": ["五四精神核心：爱国主义", "黄埔精神：爱国、革命"] },
+                    { "知识点序号": 51, "知识点标题": "台儿庄大捷", "知识点内容": ["正面战场首次重大胜利", "1938年"] },
+                    { "知识点序号": 52, "知识点标题": "起义辨析", "知识点内容": ["秋收起义：工农革命军旗帜", "南昌起义：国民革命军旗帜"] },
+                    { "知识点序号": 53, "知识点标题": "统一战线辨析", "知识点内容": ["大革命后：工农民主统一战线", "解放战争：人民民主统一战线"] },
+                    { "知识点序号": 54, "知识点标题": "维新与辛亥", "知识点内容": ["维新：思想启蒙", "辛亥：结束君主专制，建立共和"] },
+                    { "知识点序号": 55, "知识点标题": "党对军队领导", "知识点内容": ["发端：南昌起义", "奠基：三湾改编", "定型：古田会议"] },
+                    { "知识点序号": 56, "知识点标题": "新旧三民主义", "知识点内容": ["新三民主义：联俄、联共、扶助农工三大政策"] },
+                    { "知识点序号": 57, "知识点标题": "新旧民主主义革命", "知识点内容": ["分界线：五四运动", "核心区别：领导权"] },
+                    { "知识点序号": 58, "知识点标题": "转折点", "知识点内容": ["1947杨家沟：历史转折点", "1949七届二中全会：重心转城市"] },
+                    { "知识点序号": 59, "知识点标题": "毛泽东思想著作", "知识点内容": ["萌芽：《中国社会各阶级分析》", "形成：《星星之火可以燎原》", "成熟：《新民主主义论》"] },
+                    { "知识点序号": 60, "知识点标题": "党的三大优良作风", "知识点内容": ["理论联系实际", "密切联系群众", "批评与自我批评", "提出会议：1945年中共七大"] },
+                    { "知识点序号": 61, "知识点标题": "新民主主义革命三大法宝", "知识点内容": ["统一战线", "武装斗争", "党的建设", "提出著作：1939年《〈共产党人〉发刊词》"] },
+                    { "知识点序号": 62, "知识点标题": "统一战线方针", "知识点内容": ["抗日：发展进步势力、争取中间势力、孤立顽固势力"] },
+                    { "知识点序号": 63, "知识点标题": "工农武装割据", "知识点内容": ["土地革命（基本内容）", "武装斗争（主要形式）", "根据地建设（战略阵地）"] },
+                    { "知识点序号": 64, "知识点标题": "毛泽东思想活的灵魂", "知识点内容": ["实事求是（精髓、核心）", "群众路线（生命线、传家宝）", "独立自主（立党立国原则）"] },
+                    { "知识点序号": 65, "知识点标题": "马克思主义中国化", "知识点内容": ["两次结合：革命实际、建设实际", "三次飞跃：毛泽东思想、中特理论、新时代思想"] },
+                    { "知识点序号": 66, "知识点标题": "主要矛盾变化", "知识点内容": ["八大：经济文化需要与不能满足", "十一届六中：物质文化需要与落后生产", "十九大：美好生活需要与不平衡不充分发展"] },
+                    { "知识点序号": 67, "知识点标题": "思想路线", "知识点内容": ["延安整风：确立实事求是", "十一届三中全会：重新确立"] },
+                    { "知识点序号": 68, "知识点标题": "重要会议", "知识点内容": ["一大立党", "二大立纲", "三大国共合作", "八七枪杆子", "遵义生死攸关"] },
+                    { "知识点序号": 69, "知识点标题": "建国初期三大外交政策", "知识点内容": ["一边倒", "另起炉灶", "打扫干净屋子再请客"] },
+                    { "知识点序号": 70, "知识点标题": "阶级构成", "知识点内容": ["工人、农民、小资产阶级、民族资产阶级"] },
+                    { "知识点序号": 71, "知识点标题": "政治协商格局", "知识点内容": ["五一口号：揭开序幕"] },
+                    { "知识点序号": 72, "知识点标题": "个体经济", "知识点内容": ["处于十字路口的经济成分"] },
+                    { "知识点序号": 73, "知识点标题": "进入社会主义标志", "知识点内容": ["1956年底三大改造完成"] },
+                    { "知识点序号": 74, "知识点标题": "资本主义工商业改造", "知识点内容": ["和平赎买", "四马分肥", "全行业公私合营"] },
+                    { "知识点序号": 75, "知识点标题": "农业改造原则", "知识点内容": ["自愿互利", "典型示范", "国家帮助"] },
+                    { "知识点序号": 76, "知识点标题": "手工业改造", "知识点内容": ["方针：积极领导、稳步前进"] },
+                    { "知识点序号": 77, "知识点标题": "邓小平理论", "知识点内容": ["核心问题：什么是社会主义、怎样建设社会主义"] },
+                    { "知识点序号": 78, "知识点标题": "南方谈话", "知识点内容": ["定位：解放思想、实事求是的宣言书"] },
+                    { "知识点序号": 79, "知识点标题": "宣言书", "知识点内容": ["十一届三中全会主题报告", "南方谈话"] },
+                    { "知识点序号": 80, "知识点标题": "宪法", "知识点内容": ["1954年宪法：第一部社会主义类型宪法"] }
+                ]
+            },
+            {
+                "模块": "新思想", "子模块": "新时代", "知识点列表": [
+                    { "知识点序号": 81, "知识点标题": "全面依法治国", "知识点内容": ["总目标：建设中特法治体系，建设法治国家"] },
+                    { "知识点序号": 82, "知识点标题": "权利保障", "知识点内容": ["宪法保障（前提）", "立法保障（重要条件）", "行政保护（关键）", "司法保障（最后防线）"] },
+                    { "知识点序号": 83, "知识点标题": "法律运行", "知识点内容": ["制定、执行、适用、遵守"] },
+                    { "知识点序号": 84, "知识点标题": "最高法律义务", "知识点内容": ["维护国家统一和全国各民族团结"] },
+                    { "知识点序号": 85, "知识点标题": "法治体系", "知识点内容": ["法律规范、法治实施、法治监督、法治保障、党内法规"] },
+                    { "知识点序号": 86, "知识点标题": "法律至上", "知识点内容": ["普遍适用性、优先适用性、不可违反性"] },
+                    { "知识点序号": 87, "知识点标题": "党的全面领导", "知识点内容": ["制度安排：党中央对重大工作的领导体制"] },
+                    { "知识点序号": 88, "知识点标题": "党的纪律", "知识点内容": ["核心：政治纪律"] },
+                    { "知识点序号": 89, "知识点标题": "党内监督", "知识点内容": ["最根本、第一位的监督"] },
+                    { "知识点序号": 90, "知识点标题": "马克思主义科学理论", "知识点内容": ["根本所在：党坚定信仰信念"] },
+                    { "知识点序号": 91, "知识点标题": "党的显著标志", "知识点内容": ["勇于自我革命", "全心全意为人民服务（根本标志）"] },
+                    { "知识点序号": 92, "知识点标题": "统一战线（新时代）", "知识点内容": ["核心问题：坚持党的领导"] },
+                    { "知识点序号": 93, "知识点标题": "自我革命", "知识点内容": ["党最鲜明的品格", "跳出历史周期率的第二个答案"] },
+                    { "知识点序号": 94, "知识点标题": "党的领导定位", "知识点内容": ["最本质特征", "最大优势"] },
+                    { "知识点序号": 95, "知识点标题": "新发展理念", "知识点内容": ["创新（第一动力）", "协调（内在要求）", "绿色（必要条件）", "开放（必由之路）", "共享（本质要求）"] },
+                    { "知识点序号": 96, "知识点标题": "科学发展观", "知识点内容": ["第一要义：发展", "核心立场：以人为本"] },
+                    { "知识点序号": 97, "知识点标题": "新发展格局", "知识点内容": ["基本立足点：满足国内需求", "主线：供给侧结构性改革"] },
+                    { "知识点序号": 98, "知识点标题": "高质量发展", "知识点内容": ["全面建设社会主义现代化国家的首要任务"] },
+                    { "知识点序号": 99, "知识点标题": "良好的生态环境", "知识点内容": ["最公平的公共产品", "最普惠的民生福祉"] },
+                    { "知识点序号": 100, "知识点标题": "政治制度", "知识点内容": ["根本：人大制度", "基本：政协制度"] },
+                    { "知识点序号": 101, "知识点标题": "精神核心", "知识点内容": ["时代精神：改革创新", "民族精神：爱国主义"] },
+                    { "知识点序号": 102, "知识点标题": "根基前提", "知识点内容": ["国家安全（根基）", "社会稳定（前提）"] },
+                    { "知识点序号": 103, "知识点标题": "科技自立自强", "知识点内容": ["国家强盛之基、安全之要"] },
+                    { "知识点序号": 104, "知识点标题": "平等", "知识点内容": ["社会主义法律的基本属性"] },
+                    { "知识点序号": 105, "知识点标题": "金融工作", "知识点内容": ["根本宗旨：服务实体经济"] },
+                    { "知识点序号": 106, "知识点标题": "改善生活", "知识点内容": ["改革发展稳定的结合点"] },
+                    { "知识点序号": 107, "知识点标题": "共建共治共享", "知识点内容": ["社会治理制度"] },
+                    { "知识点序号": 108, "知识点标题": "摸石头过河", "知识点内容": ["富有中国特色的改革方法"] },
+                    { "知识点序号": 109, "知识点标题": "开放型经济", "知识点内容": ["重点：制度型开放"] },
+                    { "知识点序号": 110, "知识点标题": "文化事业关键", "知识点内容": ["为人民服务、为社会主义服务"] },
+                    { "知识点序号": 111, "知识点标题": "区域示范", "知识点内容": ["深圳：先行示范区", "浙江：共同富裕示范区", "浦东：引领区"] },
+                    { "知识点序号": 112, "知识点标题": "四个全面战略布局", "知识点内容": ["全面建设社会主义现代化国家（引领地位）", "全面深化改革", "全面依法治国", "全面从严治党"] },
+                    { "知识点序号": 113, "知识点标题": "民营经济", "知识点内容": ["推进中国式现代化的生力军"] },
+                    { "知识点序号": 114, "知识点标题": "国有企业", "知识点内容": ["重要物质基础和政治基础"] },
+                    { "知识点序号": 115, "知识点标题": "制度自信", "知识点内容": ["首要：政治制度自信"] },
+                    { "知识点序号": 116, "知识点标题": "一根红线", "知识点内容": ["人民至上"] },
+                    { "知识点序号": 117, "知识点标题": "一国两制", "知识点内容": ["最高原则：维护国家主权安全发展利益"] },
+                    { "知识点序号": 118, "知识点标题": "关键一步一招", "知识点内容": ["一步：全面小康", "一招：改革开放"] },
+                    { "知识点序号": 119, "知识点标题": "新型城镇化", "知识点内容": ["首要任务：农业转移人口市民化"] },
+                    { "知识点序号": 120, "知识点标题": "新时代依据", "知识点内容": ["社会主要矛盾变化"] },
+                    { "知识点序号": 121, "知识点标题": "法治一体建设", "知识点内容": ["法治国家（目标）", "法治政府（主体）", "法治社会（基础）"] },
+                    { "知识点序号": 122, "知识点标题": "出发点落脚点", "知识点内容": ["人民利益、人民幸福"] },
+                    { "知识点序号": 123, "知识点标题": "必由之路", "知识点内容": ["坚持党的全面领导（坚持中特）", "中国特色社会主义（复兴）", "团结奋斗（伟业）"] },
+                    { "知识点序号": 124, "知识点标题": "外交", "知识点内容": ["宗旨：维护世界和平、促进共同发展", "周边：亲诚惠容"] },
+                    { "知识点序号": 125, "知识点标题": "两大历史任务", "知识点内容": ["民族独立人民解放", "国家富强人民幸福"] },
+                    { "知识点序号": 126, "知识点标题": "文化自信", "知识点内容": ["更基础、更广泛、更深厚"] },
+                    { "知识点序号": 127, "知识点标题": "教育强国", "知识点内容": ["根本任务：立德树人", "龙头：高等教育"] },
+                    { "知识点序号": 128, "知识点标题": "中国式现代化", "知识点内容": ["五个特征：人口规模巨大、全体人民共同富裕、物质文明和精神文明相协调、人与自然和谐共生、和平发展道路"] },
+                    { "知识点序号": 129, "知识点标题": "爱国主义", "知识点内容": ["本质：爱国、爱党、爱社会主义高度统一"] },
+                    { "知识点序号": 130, "知识点标题": "总体国家安全观", "知识点内容": ["宗旨：人民安全", "根本：政治安全", "基础：经济安全", "保障：社会安全", "准则：国家利益至上"] },
+                    { "知识点序号": 131, "知识点标题": "进一步全面深化改革", "知识点内容": ["总目标：完善和发展中特制度，推进治理体系现代化"] },
+                    { "知识点序号": 132, "知识点标题": "中华文明特性", "知识点内容": ["连续性、创新性、统一性、包容性、和平性"] },
+                    { "知识点序号": 133, "知识点标题": "就业", "知识点内容": ["最基本的民生"] },
+                    { "知识点序号": 134, "知识点标题": "2035目标", "知识点内容": ["基本实现社会主义现代化"] },
+                    { "知识点序号": 135, "知识点标题": "乡村振兴", "知识点内容": ["总要求：产业兴旺、生态宜居、乡风文明、治理有效、生活富裕"] },
+                    { "知识点序号": 136, "知识点标题": "六个必须坚持", "知识点内容": ["坚持人民至上", "坚持自信自立", "坚持守正创新", "坚持问题导向", "坚持系统观念", "坚持胸怀天下"] }
+                ]
+            },
+            {
+                "模块": "思修",
+                "子模块": "核心考点",
+                "知识点列表": [
+                    { "知识点序号": 137, "知识点标题": "道德最基本功能", "知识点内容": ["认识功能（行为前）", "规范功能（行为中）", "调节功能（行为后，最主要/核心）"] },
+                    { "知识点序号": 138, "知识点标题": "权利保障", "知识点内容": ["宪法保障：前提和基础", "立法保障：重要条件", "行政保护：关键环节", "司法保障：最后防线"] },
+                    { "知识点序号": 139, "知识点标题": "社会主义核心价值观的三个特征", "知识点内容": ["先进性", "真实性", "人民性"] },
+                    { "知识点序号": 140, "知识点标题": "爱国主义的特征", "知识点内容": ["现实的", "历史的", "具体的"] },
+                    { "知识点序号": 141, "知识点标题": "理想的特征", "知识点内容": ["超越性", "实践性", "时代性"] },
+                    { "知识点序号": 142, "知识点标题": "信念的特征", "知识点内容": ["多样性", "执着性", "支撑性"] },
+                    { "知识点序号": 143, "知识点标题": "程序正当", "知识点内容": ["合法性", "中立性", "参与性", "公开性", "时限性"] },
+                    { "知识点序号": 144, "知识点标题": "政治权利", "知识点内容": ["选举权（与被选举权）", "表达权", "民主管理权", "监督权"] },
+                    { "知识点序号": 145, "知识点标题": "我国公民的最高法律义务", "知识点内容": ["维护国家统一和全国各民族团结"] },
+                    { "知识点序号": 146, "知识点标题": "弘扬新时代爱国主义的重要着力点和落脚点", "知识点内容": ["维护祖国统一和民族团结", "辨析1：新时代党的民族工作的出发点和落脚点是实现中华民族伟大复兴", "辨析2：新时代加强爱国主义教育的主题是实现中华民族伟大复兴"] },
+                    { "知识点序号": 147, "知识点标题": "法律至上", "知识点内容": ["普遍适用性：所有人都必须遵守", "优先适用性：优先考虑法律规范的适用", "不可违抗性：必须遵守，违反要受到惩罚"] },
+                    { "知识点序号": 148, "知识点标题": "公平正义", "知识点内容": ["权利公平", "机会公平", "规则公平", "救济公平"] },
+                    { "知识点序号": 149, "知识点标题": "权利公平", "知识点内容": ["权利主体平等", "享有的权利特别是基本权利平等", "权利保护和权利救济平等"] },
+                    { "知识点序号": 150, "知识点标题": "机会公平", "知识点内容": ["起点公平", "发展公平", "代际公平"] },
+                    { "知识点序号": 151, "知识点标题": "规则公平", "知识点内容": ["法律规则面前人人平等", "法律内容面前人人平等", "法律保护面前人人平等"] },
+                    { "知识点序号": 152, "知识点标题": "救济公平", "知识点内容": ["司法救济公平", "行政救济公平", "社会救济公平"] }
+                ]
+            }
+        ]
+    };
+
+    // 状态管理
+    let allPoints = [];
+    let progress = JSON.parse(localStorage.getItem('ml_progress') || '{}');
+    let sessionQueue = [];
+    let currentCardIdx = 0;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+        initClock();
+        processData(fullKnowledgeData);
+        loadSession();
+        updateStats();
+    });
+
+    function initClock() {
+        setInterval(() => {
+            const now = new Date();
+            const el = document.getElementById('clock-display');
+            if(el) el.innerText = `1976.10.06 ${now.toTimeString().substring(0,5)}`;
+        }, 1000);
+    }
+
+    function processData(data) {
+        if (data && data["考研政治知识点总集"]) {
+            data["考研政治知识点总集"].forEach(module => {
+                module["知识点列表"].forEach(point => {
+                    allPoints.push({
+                        id: point["知识点序号"],
+                        module: module["模块"],
+                        // 新增：捕获二级模块
+                        subModule: module["子模块"],
+                        title: point["知识点标题"],
+                        content: point["知识点内容"]
+                    });
+                });
+            });
+        }
+        updateBar('ALL', 'bar-all');
+        updateBar('马原', 'bar-mayuan');
+        updateBar('史纲', 'bar-shigang');
+        updateBar('新思想', 'bar-xinsixiang');
+        updateBar('思修', 'bar-sixiu');
+    }
+
+    function updateBar(modName, elemId) {
+        const targets = modName === 'ALL' ? allPoints : allPoints.filter(p => p.module === modName);
+        if(!targets.length) return;
+        let learned = 0;
+        targets.forEach(p => {
+            if(progress[p.id] && progress[p.id].level > 1) learned++;
+        });
+        const pct = Math.floor((learned / targets.length) * 100);
+        const bar = document.getElementById(elemId);
+        if(bar) bar.style.width = pct + '%';
+    }
+
+    window.switchTab = function(tab) {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-' + tab).classList.add('active');
+        ['view-politburo', 'view-ideology', 'view-economy'].forEach(id => document.getElementById(id).classList.add('hidden'));
+
+        if(tab === 'POLITBURO') {
+            document.getElementById('view-politburo').classList.remove('hidden');
+            // 更新所有进度条
+            ['ALL', '马原', '史纲', '新思想', '思修'].forEach(m =>
+                updateBar(m, m === 'ALL' ? 'bar-all' : 'bar-' + (m === '马原' ? 'mayuan' : m === '史纲' ? 'shigang' : m === '新思想' ? 'xinsixiang' : 'sixiu'))
+            );
+        }
+
+        if(tab === 'IDEOLOGY') {
+            document.getElementById('view-ideology').classList.remove('hidden');
+            if(sessionQueue.length > 0 && currentCardIdx < sessionQueue.length) {
+                document.getElementById('ideology-dashboard').classList.add('hidden');
+                document.getElementById('ideology-study').classList.remove('hidden');
+                loadCard();
+            } else {
+                document.getElementById('ideology-dashboard').classList.remove('hidden');
+                document.getElementById('ideology-study').classList.add('hidden');
+                updateStats();
+            }
+        }
+
+        if(tab === 'ECONOMY') {
+            document.getElementById('view-economy').classList.remove('hidden');
+            renderEconomy();
+        }
+    }
+
+    window.openDossier = function(modName) {
+        const list = modName === 'ALL' ? allPoints : allPoints.filter(p => p.module === modName);
+        const container = document.getElementById('dossier-list');
+        document.getElementById('dossier-title').innerText = `机密档案: ${modName === 'ALL' ? '全科总览' : modName}`;
+        let html = '';
+        list.forEach((p, i) => {
+            const isMastered = progress[p.id] && progress[p.id].level >= 4;
+            html += `
+                    <div class="dossier-item">
+                        <div class="dossier-q" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                            <span style="color:#8b0000; margin-right:10px; font-family:'Oswald'">${i+1}.</span>
+                            ${p.title}
+                            <span style="font-size:10px; color:#666; margin-left:5px;">[${p.subModule}]</span>
+                            ${isMastered ? '<i data-lucide="check" size="12" color="green" style="display:inline"></i>' : ''}
+                        </div>
+                        <div class="dossier-a hidden">
+                            <ul style="list-style:disc; padding-left:20px; margin:0;">
+                                ${p.content.map(l => `<li>${l}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+        });
+        container.innerHTML = html;
+        lucide.createIcons();
+        document.getElementById('modal-dossier').classList.remove('hidden');
+    }
+
+    window.closeDossier = function() { document.getElementById('modal-dossier').classList.add('hidden'); }
+
+    function updateStats() {
+        const now = Date.now();
+        const brandNew = allPoints.filter(p => !progress[p.id]);
+        const due = allPoints.filter(p => progress[p.id] && progress[p.id].nextReview <= now);
+        const mastered = allPoints.filter(p => progress[p.id] && progress[p.id].level >= 4);
+        document.getElementById('count-new').innerText = brandNew.length;
+        document.getElementById('count-due').innerText = due.length;
+        document.getElementById('count-mastered').innerText = mastered.length;
+    }
+
+    function saveSession() {
+        const sessionData = {
+            ids: sessionQueue.map(p => p.id),
+            idx: currentCardIdx
+        };
+        localStorage.setItem('ml_session', JSON.stringify(sessionData));
+    }
+
+    function loadSession() {
+        const raw = localStorage.getItem('ml_session');
+        if(!raw) return;
+        try {
+            const data = JSON.parse(raw);
+            if(data.ids && data.ids.length > 0) {
+                sessionQueue = data.ids.map(id => allPoints.find(p => p.id === id)).filter(p => p);
+                currentCardIdx = data.idx || 0;
+                if(currentCardIdx < sessionQueue.length) {
+                    switchTab('IDEOLOGY');
+                } else {
+                    clearSession();
+                }
+            }
+        } catch(e) {
+            clearSession();
+        }
+    }
+
+    function clearSession() {
+        localStorage.removeItem('ml_session');
+        sessionQueue = [];
+        currentCardIdx = 0;
+    }
+
+    // Fisher-Yates Shuffle helper
+    function shuffle(array) {
+        let currentIndex = array.length, randomIndex;
+        // While there remain elements to shuffle.
+        while (currentIndex != 0) {
+            // Pick a remaining element.
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            // And swap it with the current element.
+            [array[currentIndex], array[randomIndex]] = [
+                array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    window.startSession = function(mode) {
+        const now = Date.now();
+        let pool = [];
+        clearSession();
+
+        if (mode === 'new') {
+            // Get all unlearned points
+            let candidates = allPoints.filter(p => !progress[p.id]);
+            // Shuffle to randomize modules
+            shuffle(candidates);
+            // Take the top 10
+            pool = candidates.slice(0, 10);
+        } else if (mode === 'review') {
+            // Get all due items
+            let candidates = allPoints.filter(p => progress[p.id] && progress[p.id].nextReview <= now);
+            // Sort by most overdue (smallest nextReview time first)
+            candidates.sort((a, b) => progress[a.id].nextReview - progress[b.id].nextReview);
+            pool = candidates.slice(0, 20);
+            // Shuffle the session so you don't review in strict urgency order if you prefer random,
+            // but usually review order is fine. Let's shuffle to break module chunks if timestamps are close.
+            shuffle(pool);
+        } else {
+            // Mixed Mode
+            let newCandidates = allPoints.filter(p => !progress[p.id]);
+            shuffle(newCandidates);
+            const newP = newCandidates.slice(0, 15);
+
+            let dueCandidates = allPoints.filter(p => progress[p.id] && progress[p.id].nextReview <= now);
+            dueCandidates.sort((a, b) => progress[a.id].nextReview - progress[b.id].nextReview);
+            const dueP = dueCandidates.slice(0, 25);
+
+            pool = [...newP, ...dueP];
+            // Shuffle the mixed pool
+            shuffle(pool);
+        }
+
+        // Fill if empty (Fallback)
+        if(pool.length < 5 && mode !== 'review') {
+            let others = allPoints.filter(p => !pool.includes(p));
+            shuffle(others);
+            pool = [...pool, ...others.slice(0, 10 - pool.length)];
+        }
+
+        if(pool.length === 0) { alert("暂无符合条件的文件。"); return; }
+
+        sessionQueue = pool;
+        currentCardIdx = 0;
+        saveSession();
+
+        document.getElementById('ideology-dashboard').classList.add('hidden');
+        document.getElementById('ideology-study').classList.remove('hidden');
+        loadCard();
+    }
+
+    function loadCard() {
+        if(currentCardIdx >= sessionQueue.length) return;
+        const card = sessionQueue[currentCardIdx];
+        const wrapper = document.getElementById('folder-anim-wrapper');
+
+        wrapper.classList.remove('revealed');
+        document.getElementById('study-a-content').classList.add('hidden');
+        document.getElementById('study-actions').classList.add('hidden');
+        document.getElementById('btn-extract').style.display = 'block';
+
+        document.getElementById('folder-question-display').innerText = card.title;
+
+        // 核心逻辑：提取二级知识点（内容中冒号前的部分）
+        const contentTags = card.content.map(line => {
+            // 尝试用中文冒号或英文冒号分割
+            const split = line.split(/[:：]/);
+            // 只有当存在分割且第一部分不宜过长（例如少于10个字）才认为是标题
+            if(split.length > 1 && split[0].length < 15) {
+                return split[0];
+            }
+            return null;
+        }).filter(Boolean);
+
+        const subContext = document.getElementById('folder-sub-context');
+        if(subContext) {
+            // 基础标签 + 动态提取的重点标签
+            let html = `
+                <span class="sub-tag">${card.module}</span>
+                <span class="sub-tag">${card.subModule}</span>
+            `;
+            // 增加高亮标签
+            if(contentTags.length > 0) {
+                contentTags.forEach(tag => {
+                    html += `<span class="sub-tag-highlight">${tag}</span>`;
+                });
+            }
+            subContext.innerHTML = html;
+        }
+
+        document.getElementById('study-q-content-inner').innerText = card.title;
+        document.getElementById('study-a-content').innerHTML = card.content.map(l => `<p style="margin-bottom:6px;">• ${l}</p>`).join('');
+
+        const pct = ((currentCardIdx) / sessionQueue.length) * 100;
+        document.getElementById('study-progress').style.width = pct + '%';
+        lucide.createIcons();
+    }
+
+    window.revealFile = function() {
+        document.getElementById('folder-anim-wrapper').classList.add('revealed');
+        setTimeout(() => {
+            document.getElementById('study-a-content').classList.remove('hidden');
+            document.getElementById('study-actions').classList.remove('hidden');
+            document.getElementById('btn-extract').style.display = 'none';
+        }, 600);
+    }
+
+    window.handleRate = function(rate) {
+        const card = sessionQueue[currentCardIdx];
+        let lvl = progress[card.id]?.level || 0;
+        if(rate === 'remember') lvl++; else lvl = 1;
+        const intervals = [0, 1440, 4320, 10080, 20160];
+        const nextReview = Date.now() + (intervals[Math.min(lvl, 4)] * 60000);
+
+        progress[card.id] = { level: lvl, nextReview: nextReview };
+        localStorage.setItem('ml_progress', JSON.stringify(progress));
+
+        currentCardIdx++;
+        saveSession();
+
+        if(currentCardIdx >= sessionQueue.length) {
+            alert("批阅完毕！");
+            window.quitSession();
+        } else {
+            loadCard();
+        }
+    }
+
+    window.quitSession = function() {
+        clearSession();
+        document.getElementById('ideology-study').classList.add('hidden');
+        document.getElementById('ideology-dashboard').classList.remove('hidden');
+        updateStats();
+    }
+
+    function renderEconomy() {
+        const total = allPoints.length;
+        const levels = { unlearned: 0, learning: 0, mastered: 0 };
+        const modules = {};
+
+        allPoints.forEach(p => {
+            if(!progress[p.id]) levels.unlearned++;
+            else if(progress[p.id].level < 4) levels.learning++;
+            else levels.mastered++;
+
+            if(!modules[p.module]) modules[p.module] = { total: 0, mastered: 0, learned: 0 };
+            modules[p.module].total++;
+            if(progress[p.id]) {
+                modules[p.module].learned++;
+                if(progress[p.id].level >= 4) modules[p.module].mastered++;
+            }
+        });
+
+        const p1 = (levels.unlearned / total) * 100;
+        const p2 = (levels.learning / total) * 100;
+        const p3 = (levels.mastered / total) * 100;
+
+        const pie = document.getElementById('pie-chart-wrapper');
+        const c1 = '#e6e1d5';
+        const c2 = '#f0c430';
+        const c3 = '#d40000';
+
+        pie.style.background = `conic-gradient(
+            ${c1} 0% ${p1}%,
+            ${c2} ${p1}% ${p1+p2}%,
+            ${c3} ${p1+p2}% 100%
+        )`;
+
+        const legendHTML = `
+            <div class="faction-row">
+                <div class="flex items-center"><div class="faction-color" style="background:${c3}"></div><span style="font-size:12px;font-weight:bold;">已掌握 (MASTERED)</span></div>
+                <span style="font-family:'Oswald'">${levels.mastered}</span>
+            </div>
+            <div class="faction-row">
+                <div class="flex items-center"><div class="faction-color" style="background:${c2}"></div><span style="font-size:12px;font-weight:bold;">学习中 (LEARNING)</span></div>
+                <span style="font-family:'Oswald'">${levels.learning}</span>
+            </div>
+            <div class="faction-row">
+                <div class="flex items-center"><div class="faction-color" style="background:${c1}"></div><span style="font-size:12px;font-weight:bold;">未触及 (UNKNOWN)</span></div>
+                <span style="font-family:'Oswald'">${levels.unlearned}</span>
+            </div>
+        `;
+        document.getElementById('pie-legend').innerHTML = legendHTML;
+
+        const grid = document.getElementById('policy-grid-container');
+        let gridHTML = '';
+
+        Object.keys(modules).forEach((m, i) => {
+            const modData = modules[m];
+            const pct = Math.floor((modData.learned / modData.total) * 100);
+            let icon = 'book-open';
+            if(i===0) icon = 'anchor'; // 马原
+            if(i===1) icon = 'scroll'; // 史纲
+            if(i===2) icon = 'zap'; // 新思想
+            if(i===3) icon = 'scale'; // 思修
+
+            gridHTML += `
+                <div class="policy-card">
+                    <i data-lucide="${icon}" size="28" color="#3d2e26"></i>
+                    <span style="font-size:12px; font-weight:bold; margin-top:5px;">${m}</span>
+                    <div style="width:80%; height:4px; background:#ccc; margin-top:4px;">
+                        <div style="width:${pct}%; height:100%; background:${i===0?'#8b0000':i===1?'#1565c0': i===2?'#2e7d32':'#6a1b9a'}"></div>
+                    </div>
+                    <span style="font-size:10px; margin-top:2px;">${pct}%</span>
+                </div>
+            `;
+        });
+
+        const now = Date.now();
+        const dueCount = allPoints.filter(p => progress[p.id] && progress[p.id].nextReview <= now).length;
+
+        gridHTML += `
+            <div class="policy-card">
+                <i data-lucide="alert-triangle" size="28" color="#d40000"></i>
+                <span style="font-size:12px; font-weight:bold; margin-top:5px;">待复习</span>
+                <span style="font-family:'Oswald'; font-size:18px; color:#d40000;">${dueCount}</span>
+            </div>
+        `;
+
+        gridHTML += `
+            <div class="policy-card">
+                <i data-lucide="database" size="28" color="#3d2e26"></i>
+                <span style="font-size:12px; font-weight:bold; margin-top:5px;">总档案数</span>
+                <span style="font-family:'Oswald'; font-size:18px;">${total}</span>
+            </div>
+        `;
+
+        const reliability = Math.min(100, Math.floor((levels.mastered * 1.5 + levels.learning * 0.5) / total * 100) + 20);
+        gridHTML += `
+            <div class="policy-card">
+                <i data-lucide="shield-check" size="28" color="#2e7d32"></i>
+                <span style="font-size:12px; font-weight:bold; margin-top:5px;">政治可靠度</span>
+                <span style="font-family:'Oswald'; font-size:18px; color:#2e7d32;">${reliability}%</span>
+            </div>
+        `;
+
+        // 填充空白格子
+        const placeholders = ['TRADE', 'WELFARE', 'SCIENCE', 'ARMY', 'CULTURE', 'FOREIGN'];
+        const icons = ['briefcase', 'heart', 'microscope', 'crosshair', 'pen-tool', 'globe'];
+
+        // 12格 - 4个学科 - 3个统计 = 5个空位
+        for(let j=0; j<5; j++) {
+            gridHTML += `
+                <div class="policy-card" style="opacity:0.5; background:#e6e1d5;">
+                    <i data-lucide="${icons[j]}" size="28" color="#555"></i>
+                    <span style="font-size:12px; font-weight:bold; margin-top:5px;">${placeholders[j]}</span>
+                    <span style="font-size:10px;">(LOCKED)</span>
+                </div>
+            `;
+        }
+
+        grid.innerHTML = gridHTML;
+        lucide.createIcons();
+
+        const urgentList = document.getElementById('urgent-list');
+        if(dueCount === 0) {
+            urgentList.innerHTML = "目前没有紧迫的整风任务，同志，请继续保持！";
+        } else {
+            const urgentItems = allPoints
+                .filter(p => progress[p.id] && progress[p.id].nextReview <= now)
+                .sort((a,b) => progress[a.id].nextReview - progress[b.id].nextReview)
+                .slice(0, 3);
+
+            urgentList.innerHTML = urgentItems.map(p => `<p style="margin-bottom:4px;">- [${p.module}] ${p.title} (已逾期)</p>`).join('');
+        }
+    }
+</script>
+</body>
+</html>
